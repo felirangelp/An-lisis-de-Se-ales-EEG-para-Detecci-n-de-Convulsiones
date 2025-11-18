@@ -34,6 +34,64 @@ def crear_espectrograma(senal, fs, titulo):
     
     return times, freqs, Sxx_db
 
+def crear_visualizacion_multicanal(data_ictal, data_interictal, fs, n_canales=16):
+    """
+    Crea una visualización multi-canal mostrando la transición interictal-ictal
+    
+    Args:
+        data_ictal: Array con eventos ictal (n_eventos, n_muestras)
+        data_interictal: Array con eventos interictal (n_eventos, n_muestras)
+        fs: Frecuencia de muestreo
+        n_canales: Número de canales a mostrar (default 16)
+    
+    Returns:
+        dict: Diccionario con datos para plotly
+    """
+    # Seleccionar n_canales eventos de cada tipo
+    n_canales = min(n_canales, min(data_interictal.shape[0], data_ictal.shape[0]))
+    indices_interictal = np.linspace(0, data_interictal.shape[0]-1, n_canales, dtype=int)
+    indices_ictal = np.linspace(0, data_ictal.shape[0]-1, n_canales, dtype=int)
+    
+    # Crear vector de tiempo para cada segmento
+    n_muestras = data_interictal.shape[1]
+    tiempo_segmento = np.arange(n_muestras) / fs
+    
+    # Concatenar interictal seguido de ictal para cada canal
+    tiempo_completo = np.concatenate([tiempo_segmento, tiempo_segmento + tiempo_segmento[-1] + tiempo_segmento[1]])
+    
+    # Preparar datos para cada canal
+    canales_datos = []
+    offset_vertical = 0
+    spacing = 500  # Espaciado vertical entre canales
+    
+    for i in range(n_canales):
+        # Obtener segmentos
+        seg_interictal = data_interictal[indices_interictal[i], :]
+        seg_ictal = data_ictal[indices_ictal[i], :]
+        
+        # Concatenar y añadir offset vertical
+        senal_completa = np.concatenate([seg_interictal, seg_ictal])
+        senal_offset = senal_completa + offset_vertical
+        
+        canales_datos.append({
+            'tiempo': tiempo_completo.tolist(),
+            'senal': senal_offset.tolist(),
+            'senal_interictal': seg_interictal.tolist(),
+            'senal_ictal': seg_ictal.tolist(),
+            'tiempo_interictal': tiempo_segmento.tolist(),
+            'tiempo_ictal': (tiempo_segmento + tiempo_segmento[-1] + tiempo_segmento[1]).tolist(),
+            'offset': float(offset_vertical)
+        })
+        
+        offset_vertical -= spacing
+    
+    return {
+        'canales': canales_datos,
+        'n_canales': n_canales,
+        'tiempo_transicion': float(tiempo_segmento[-1] + tiempo_segmento[1]),
+        'fs': float(fs)
+    }
+
 def visualizar_segmentos(data_ictal, data_interictal, fs, save_plotly=True):
     """
     Crea visualizaciones temporales y tiempo-frecuencia de segmentos representativos
@@ -60,6 +118,10 @@ def visualizar_segmentos(data_ictal, data_interictal, fs, save_plotly=True):
     times_ictal, freqs_ictal, Sxx_ictal = crear_espectrograma(
         segmento_ictal, fs, "Ictal")
     
+    # Crear visualización multi-canal
+    print("Generando visualización multi-canal...")
+    datos_multicanal = crear_visualizacion_multicanal(data_ictal, data_interictal, fs, n_canales=16)
+    
     # Preparar datos para plotly
     datos_plotly = {
         'tiempo_interictal': tiempo.tolist(),
@@ -72,6 +134,7 @@ def visualizar_segmentos(data_ictal, data_interictal, fs, save_plotly=True):
         'times_ictal': times_ictal.tolist(),
         'freqs_ictal': freqs_ictal.tolist(),
         'Sxx_ictal': Sxx_ictal.tolist(),
+        'multicanal': datos_multicanal,
         'fs': float(fs)
     }
     

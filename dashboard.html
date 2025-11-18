@@ -352,6 +352,127 @@ plt.show()</pre>
             </div>
         </div>
 
+        <!-- Sección 2.5: Visualización Multi-Canal -->
+        <div class="section">
+            <h2>2.5. Visualización Multi-Canal: Transición Interictal → Ictal</h2>
+            
+            <!-- Gráfica Multi-Canal -->
+            <div class="graph-info">
+                <div class="graph-title">Visualización Multi-Canal EEG: Transición Interictal → Ictal</div>
+                
+                <div class="description">
+                    <strong>Descripción:</strong> Esta visualización muestra múltiples canales de EEG (16 canales) apilados verticalmente, representando la transición desde un estado interictal (entre crisis) hacia un estado ictal (durante la crisis epiléptica). Cada línea horizontal representa un canal diferente de la señal EEG. La parte izquierda de cada canal (en azul) muestra la actividad interictal, caracterizada por amplitudes relativamente bajas y patrones irregulares. La parte derecha (en marrón) muestra la actividad ictal, con amplitudes significativamente mayores y patrones más rítmicos y sincronizados. La línea roja punteada vertical marca el punto de transición entre ambos estados. Esta visualización es similar a las representaciones clínicas estándar de EEG y permite observar claramente las diferencias entre ambos estados fisiológicos.
+                </div>
+                
+                <div class="conclusion">
+                    <strong>Conclusión:</strong> La visualización multi-canal revela de manera clara y simultánea las diferencias entre los estados interictal e ictal a través de múltiples canales. Se observa una transición abrupta y sincronizada en todos los canales, donde la actividad ictal muestra amplitudes dramáticamente aumentadas y patrones más estructurados. Esta representación es fundamental para el diagnóstico clínico y demuestra visualmente por qué las características extraídas (especialmente las relacionadas con amplitud y contenido espectral) son efectivas para la clasificación automática de convulsiones.
+                </div>
+                
+                <div class="code-block">
+                    <pre># Código Python para visualización multi-canal EEG
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.io
+
+def crear_visualizacion_multicanal(data_ictal, data_interictal, fs, n_canales=16):
+    """
+    Crea una visualización multi-canal mostrando la transición interictal-ictal
+    
+    Args:
+        data_ictal: Array con eventos ictal (n_eventos, n_muestras)
+        data_interictal: Array con eventos interictal (n_eventos, n_muestras)
+        fs: Frecuencia de muestreo
+        n_canales: Número de canales a mostrar (default 16)
+    """
+    # Seleccionar n_canales eventos de cada tipo
+    n_canales = min(n_canales, min(data_interictal.shape[0], data_ictal.shape[0]))
+    indices_interictal = np.linspace(0, data_interictal.shape[0]-1, n_canales, dtype=int)
+    indices_ictal = np.linspace(0, data_ictal.shape[0]-1, n_canales, dtype=int)
+    
+    # Crear vector de tiempo para cada segmento
+    n_muestras = data_interictal.shape[1]
+    tiempo_segmento = np.arange(n_muestras) / fs
+    
+    # Concatenar interictal seguido de ictal para cada canal
+    tiempo_completo = np.concatenate([
+        tiempo_segmento, 
+        tiempo_segmento + tiempo_segmento[-1] + tiempo_segmento[1]
+    ])
+    
+    # Preparar datos para cada canal
+    offset_vertical = 0
+    spacing = 500  # Espaciado vertical entre canales
+    
+    # Crear la figura
+    fig, ax = plt.subplots(figsize=(16, 10))
+    
+    for i in range(n_canales):
+        # Obtener segmentos
+        seg_interictal = data_interictal[indices_interictal[i], :]
+        seg_ictal = data_ictal[indices_ictal[i], :]
+        
+        # Crear tiempos para cada segmento
+        tiempo_interictal = tiempo_segmento
+        tiempo_ictal = tiempo_segmento + tiempo_segmento[-1] + tiempo_segmento[1]
+        
+        # Añadir offset vertical y graficar
+        senal_interictal_offset = seg_interictal + offset_vertical
+        senal_ictal_offset = seg_ictal + offset_vertical
+        
+        # Graficar segmento interictal en azul
+        ax.plot(tiempo_interictal, senal_interictal_offset, 
+               'b-', linewidth=0.8, alpha=0.8)
+        
+        # Graficar segmento ictal en marrón
+        ax.plot(tiempo_ictal, senal_ictal_offset, 
+               color='#8B4513', linewidth=0.8, alpha=0.8)  # Color marrón
+        
+        offset_vertical -= spacing
+    
+    # Añadir línea vertical en el punto de transición
+    tiempo_transicion = tiempo_segmento[-1] + tiempo_segmento[1]
+    y_min = offset_vertical - spacing
+    y_max = spacing * (n_canales - 1)
+    ax.axvline(x=tiempo_transicion, color='red', linestyle='--', 
+              linewidth=2, label='Transición')
+    
+    # Añadir etiquetas de regiones
+    ax.text(tiempo_transicion / 2, y_max - 200, 'Interictal', 
+           fontsize=14, color='blue', fontweight='bold', 
+           ha='center', bbox=dict(boxstyle='round', facecolor='white', 
+                                 edgecolor='blue', linewidth=2))
+    ax.text(tiempo_transicion + (tiempo_transicion / 2), y_max - 200, 'Ictal', 
+           fontsize=14, color='#8B4513', fontweight='bold', 
+           ha='center', bbox=dict(boxstyle='round', facecolor='white', 
+                                 edgecolor='#8B4513', linewidth=2))
+    
+    # Configurar ejes
+    ax.set_xlabel('Tiempo (s)', fontsize=12)
+    ax.set_ylabel('Amplitud (μV) - Canales apilados', fontsize=12)
+    ax.set_title('Visualización Multi-Canal EEG: Transición Interictal → Ictal', 
+                fontsize=14, fontweight='bold')
+    ax.grid(True, alpha=0.3)
+    ax.legend(loc='upper right')
+    
+    plt.tight_layout()
+    plt.show()
+
+# Cargar datos
+mat_data = scipy.io.loadmat('ArchivoSeizureDetect.mat')
+data_ictal = mat_data['Data_ictal']
+data_interictal = mat_data['Data_interictal']
+fs = float(mat_data['Fs'][0, 0])
+
+# Crear visualización
+crear_visualizacion_multicanal(data_ictal, data_interictal, fs, n_canales=16)</pre>
+                </div>
+            </div>
+            
+            <div class="plot-container">
+                <div id="plot-multicanal"></div>
+            </div>
+        </div>
+
         <!-- Sección 3: Matriz de Características -->
         <div class="section">
             <h2>3. Matriz de Características</h2>
@@ -716,6 +837,12 @@ print(classification_report(y_test, y_pred, target_names=['Interictal', 'Ictal']
                                        datosDashboard.caracteristicas.nombres,
                                        datosDashboard.caracteristicas.estadisticas);
 
+            // 3.5. Visualización multi-canal
+            if (datosDashboard.visualizacion.multicanal) {
+                crearVisualizacionMulticanal('plot-multicanal',
+                                            datosDashboard.visualizacion.multicanal);
+            }
+
             // 4. Resultados de clasificación
             mostrarMetricasClasificacion(datosDashboard.clasificacion);
             crearMatrizConfusion('plot-confusion-matrix',
@@ -793,6 +920,105 @@ print(classification_report(y_test, y_pred, target_names=['Interictal', 'Ictal']
             };
 
             Plotly.newPlot(divId, [trace], layout, {responsive: true});
+        }
+
+        // Función para crear visualización multi-canal
+        function crearVisualizacionMulticanal(divId, datosMulticanal) {
+            const traces = [];
+            const tiempoTransicion = datosMulticanal.tiempo_transicion;
+            
+            // Crear un trace para cada canal
+            datosMulticanal.canales.forEach((canal, index) => {
+                // Trace para segmento interictal (azul)
+                traces.push({
+                    x: canal.tiempo_interictal,
+                    y: canal.senal_interictal.map(val => val + canal.offset),
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: 'blue', width: 0.8 },
+                    name: index === 0 ? 'Interictal' : '',
+                    showlegend: index === 0,
+                    hoverinfo: 'skip'
+                });
+                
+                // Trace para segmento ictal (rojo/marrón)
+                traces.push({
+                    x: canal.tiempo_ictal,
+                    y: canal.senal_ictal.map(val => val + canal.offset),
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: '#8B4513', width: 0.8 }, // Color marrón
+                    name: index === 0 ? 'Ictal' : '',
+                    showlegend: index === 0,
+                    hoverinfo: 'skip'
+                });
+            });
+            
+            // Añadir línea vertical en el punto de transición
+            const yMin = Math.min(...datosMulticanal.canales.map(c => c.offset - 500));
+            const yMax = Math.max(...datosMulticanal.canales.map(c => c.offset + 500));
+            
+            traces.push({
+                x: [tiempoTransicion, tiempoTransicion],
+                y: [yMin, yMax],
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: 'red', width: 2, dash: 'dash' },
+                name: 'Transición',
+                showlegend: true,
+                hoverinfo: 'skip'
+            });
+            
+            const layout = {
+                title: {
+                    text: 'Visualización Multi-Canal EEG: Transición Interictal → Ictal',
+                    font: { size: 18 }
+                },
+                xaxis: {
+                    title: 'Tiempo (s)',
+                    titlefont: { size: 14 },
+                    showgrid: true,
+                    gridcolor: 'rgba(128,128,128,0.2)'
+                },
+                yaxis: {
+                    title: 'Amplitud (μV) - Canales apilados',
+                    titlefont: { size: 14 },
+                    showgrid: true,
+                    gridcolor: 'rgba(128,128,128,0.2)',
+                    showticklabels: false  // Ocultar valores del eje Y para mejor visualización
+                },
+                hovermode: 'closest',
+                margin: { l: 60, r: 30, t: 50, b: 50 },
+                legend: {
+                    x: 0.02,
+                    y: 0.98,
+                    bgcolor: 'rgba(255,255,255,0.8)'
+                },
+                annotations: [
+                    {
+                        x: tiempoTransicion / 2,
+                        y: yMax - 200,
+                        text: 'Interictal',
+                        showarrow: false,
+                        font: { size: 14, color: 'blue', bold: true },
+                        bgcolor: 'rgba(255,255,255,0.7)',
+                        bordercolor: 'blue',
+                        borderwidth: 2
+                    },
+                    {
+                        x: tiempoTransicion + (tiempoTransicion / 2),
+                        y: yMax - 200,
+                        text: 'Ictal',
+                        showarrow: false,
+                        font: { size: 14, color: '#8B4513', bold: true },
+                        bgcolor: 'rgba(255,255,255,0.7)',
+                        bordercolor: '#8B4513',
+                        borderwidth: 2
+                    }
+                ]
+            };
+            
+            Plotly.newPlot(divId, traces, layout, {responsive: true});
         }
 
         // Función para crear gráfica de características
