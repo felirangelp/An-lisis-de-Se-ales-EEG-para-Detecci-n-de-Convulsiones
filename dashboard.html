@@ -477,18 +477,25 @@ crear_visualizacion_multicanal(data_ictal, data_interictal, fs, n_canales=16)</p
         <div class="section">
             <h2>3. Matriz de Características</h2>
             
-            <!-- Gráfica de Características -->
+            <div class="info-box">
+                <strong>Nota:</strong> Cada característica se muestra en una gráfica individual para permitir una mejor visualización de las diferencias entre estados interictal e ictal, evitando que características con valores grandes (como Variance) dominen la escala visual.
+            </div>
+            
+            <!-- Gráfica de Características - Descripción General -->
             <div class="graph-info">
                 <div class="graph-title">Comparación de Características: Interictal vs Ictal</div>
                 
                 <div class="description">
-                    <strong>Descripción:</strong> Esta gráfica compara las 7 características extraídas de todos los eventos EEG entre las clases interictal e ictal. Las características incluyen: media (mean), varianza (variance), y densidad espectral de potencia (PSD) en las bandas delta (0.5-4 Hz), theta (4-8 Hz), alpha (8-13 Hz), beta (13-30 Hz) y gamma (30-100 Hz). Las barras muestran los valores promedio y las líneas de error representan la desviación estándar, permitiendo identificar qué características son más discriminativas entre ambas clases.
+                    <strong>Descripción:</strong> Las siguientes gráficas muestran las 7 características extraídas de todos los eventos EEG, comparando las clases interictal e ictal. Cada característica se presenta en una gráfica individual con su propia escala, lo que permite visualizar mejor las diferencias sin que características con valores grandes dominen la visualización. Las características incluyen: media (mean), varianza (variance), y densidad espectral de potencia (PSD) en las bandas delta (0.5-4 Hz), theta (4-8 Hz), alpha (8-13 Hz), beta (13-30 Hz) y gamma (30-100 Hz). Las barras muestran los valores promedio y las líneas de error representan la desviación estándar.
                 </div>
                 
                 <div class="conclusion">
-                    <strong>Conclusión:</strong> Se observan diferencias significativas en varias características entre eventos interictal e ictal. Las características espectrales (PSD en diferentes bandas) muestran variaciones importantes, especialmente en las bandas de mayor frecuencia (beta y gamma), donde los eventos ictales presentan mayor energía. Estas diferencias justifican el uso de estas características para la clasificación automática de convulsiones.
+                    <strong>Conclusión:</strong> Al visualizar cada característica de manera individual, se pueden observar claramente las diferencias entre estados interictal e ictal. Las características espectrales (PSD en diferentes bandas) muestran variaciones importantes, especialmente en las bandas de mayor frecuencia (beta y gamma), donde los eventos ictales presentan mayor energía. Estas diferencias justifican el uso de estas características para la clasificación automática de convulsiones.
                 </div>
-                
+            </div>
+            
+            <!-- Código Python -->
+            <div class="graph-info">
                 <div class="code-block">
                     <pre># Código Python para matriz de características y comparación
 import numpy as np
@@ -497,46 +504,34 @@ from scipy import signal
 import scipy.io
 
 # Definir bandas de frecuencia EEG estándar
-BANDAS_FRECUENCIA = {
+BANDAS_FRECUENCIA = {{
     'delta': (0.5, 4),
     'theta': (4, 8),
     'alpha': (8, 13),
     'beta': (13, 30),
     'gamma': (30, 100)
-}
+}}
 
 def calcular_psd_banda(senal, fs, banda_min, banda_max):
     """
     Calcula la densidad espectral de potencia (PSD) promedio en una banda
     """
-    # Calcular PSD usando el método de Welch
     freqs, psd = signal.welch(senal, fs, nperseg=min(256, len(senal)), 
                               noverlap=None, nfft=None)
-    
-    # Encontrar índices de la banda de frecuencia
     idx_banda = np.where((freqs >= banda_min) & (freqs <= banda_max))[0]
-    
-    # Calcular PSD promedio en la banda
     if len(idx_banda) > 0:
         psd_banda = np.mean(psd[idx_banda])
     else:
         psd_banda = 0.0
-    
     return psd_banda
 
 def extraer_caracteristicas(senal):
     """
     Extrae las 7 características de un segmento de señal
     """
-    fs = 500.0  # Frecuencia de muestreo
-    
-    # 1. Media
+    fs = 500.0
     mean_val = np.mean(senal)
-    
-    # 2. Varianza
     variance_val = np.var(senal)
-    
-    # 3-7. PSD en cada banda de frecuencia
     psd_delta = calcular_psd_banda(senal, fs, BANDAS_FRECUENCIA['delta'][0], 
                                     BANDAS_FRECUENCIA['delta'][1])
     psd_theta = calcular_psd_banda(senal, fs, BANDAS_FRECUENCIA['theta'][0], 
@@ -547,7 +542,6 @@ def extraer_caracteristicas(senal):
                                    BANDAS_FRECUENCIA['beta'][1])
     psd_gamma = calcular_psd_banda(senal, fs, BANDAS_FRECUENCIA['gamma'][0], 
                                    BANDAS_FRECUENCIA['gamma'][1])
-    
     return np.array([mean_val, variance_val, psd_delta, psd_theta, 
                      psd_alpha, psd_beta, psd_gamma])
 
@@ -579,31 +573,52 @@ std_ictal = caracteristicas_ictal.std(axis=0)
 nombres = ['Mean', 'Variance', 'PSD Delta', 'PSD Theta', 
            'PSD Alpha', 'PSD Beta', 'PSD Gamma']
 
-# Crear gráfica de barras comparativa
-x = np.arange(len(nombres))
-width = 0.35
-
-fig, ax = plt.subplots(figsize=(12, 6))
-bars1 = ax.bar(x - width/2, mean_interictal, width, yerr=std_interictal, 
-               label='Interictal', color='blue', alpha=0.7, capsize=5)
-bars2 = ax.bar(x + width/2, mean_ictal, width, yerr=std_ictal, 
-               label='Ictal', color='red', alpha=0.7, capsize=5)
-
-ax.set_xlabel('Características', fontsize=12)
-ax.set_ylabel('Valor', fontsize=12)
-ax.set_title('Comparación de Características: Interictal vs Ictal', 
-             fontsize=14, fontweight='bold')
-ax.set_xticks(x)
-ax.set_xticklabels(nombres, rotation=45, ha='right')
-ax.legend()
-ax.grid(True, alpha=0.3, axis='y')
-plt.tight_layout()
-plt.show()</pre>
+# Crear gráfica individual para cada característica
+for i, nombre in enumerate(nombres):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    
+    x = ['Interictal', 'Ictal']
+    y = [mean_interictal[i], mean_ictal[i]]
+    yerr = [std_interictal[i], std_ictal[i]]
+    colors = ['blue', 'red']
+    
+    bars = ax.bar(x, y, yerr=yerr, color=colors, alpha=0.7, capsize=10, width=0.6)
+    ax.set_ylabel('Valor', fontsize=12)
+    ax.set_title(f'{{nombre}}: Comparación Interictal vs Ictal', 
+                fontsize=14, fontweight='bold')
+    ax.grid(True, alpha=0.3, axis='y')
+    plt.tight_layout()
+    plt.show()</pre>
                 </div>
             </div>
             
+            <!-- Gráficas individuales para cada característica -->
             <div class="plot-container">
-                <div id="plot-caracteristicas"></div>
+                <div id="plot-caracteristica-mean"></div>
+            </div>
+            
+            <div class="plot-container">
+                <div id="plot-caracteristica-variance"></div>
+            </div>
+            
+            <div class="plot-container">
+                <div id="plot-caracteristica-psd-delta"></div>
+            </div>
+            
+            <div class="plot-container">
+                <div id="plot-caracteristica-psd-theta"></div>
+            </div>
+            
+            <div class="plot-container">
+                <div id="plot-caracteristica-psd-alpha"></div>
+            </div>
+            
+            <div class="plot-container">
+                <div id="plot-caracteristica-psd-beta"></div>
+            </div>
+            
+            <div class="plot-container">
+                <div id="plot-caracteristica-psd-gamma"></div>
             </div>
         </div>
 
@@ -832,10 +847,9 @@ print(classification_report(y_test, y_pred, target_names=['Interictal', 'Ictal']
                               datosDashboard.visualizacion.Sxx_ictal,
                               'Espectrograma - Segmento Ictal');
 
-            // 3. Matriz de características
-            crearGraficaCaracteristicas('plot-caracteristicas',
-                                       datosDashboard.caracteristicas.nombres,
-                                       datosDashboard.caracteristicas.estadisticas);
+            // 3. Matriz de características - Gráficas individuales
+            crearGraficasCaracteristicasIndividuales(datosDashboard.caracteristicas.nombres,
+                                                     datosDashboard.caracteristicas.estadisticas);
 
             // 3.5. Visualización multi-canal
             if (datosDashboard.visualizacion.multicanal) {
@@ -1021,54 +1035,69 @@ print(classification_report(y_test, y_pred, target_names=['Interictal', 'Ictal']
             Plotly.newPlot(divId, traces, layout, {responsive: true});
         }
 
-        // Función para crear gráfica de características
-        function crearGraficaCaracteristicas(divId, nombres, estadisticas) {
-            const traceInterictal = {
-                x: nombres,
-                y: estadisticas.interictal.mean,
-                type: 'bar',
-                name: 'Interictal',
-                marker: { color: 'blue' },
-                error_y: {
-                    type: 'data',
-                    array: estadisticas.interictal.std,
-                    visible: true
-                }
-            };
+        // Función para crear gráficas individuales de características
+        function crearGraficasCaracteristicasIndividuales(nombres, estadisticas) {
+            // IDs de los contenedores para cada característica
+            const ids = [
+                'plot-caracteristica-mean',
+                'plot-caracteristica-variance',
+                'plot-caracteristica-psd-delta',
+                'plot-caracteristica-psd-theta',
+                'plot-caracteristica-psd-alpha',
+                'plot-caracteristica-psd-beta',
+                'plot-caracteristica-psd-gamma'
+            ];
+            
+            nombres.forEach((nombre, index) => {
+                const traceInterictal = {
+                    x: ['Interictal'],
+                    y: [estadisticas.interictal.mean[index]],
+                    type: 'bar',
+                    name: 'Interictal',
+                    marker: { color: 'blue' },
+                    error_y: {
+                        type: 'data',
+                        array: [estadisticas.interictal.std[index]],
+                        visible: true
+                    },
+                    width: 0.5
+                };
 
-            const traceIctal = {
-                x: nombres,
-                y: estadisticas.ictal.mean,
-                type: 'bar',
-                name: 'Ictal',
-                marker: { color: 'red' },
-                error_y: {
-                    type: 'data',
-                    array: estadisticas.ictal.std,
-                    visible: true
-                }
-            };
+                const traceIctal = {
+                    x: ['Ictal'],
+                    y: [estadisticas.ictal.mean[index]],
+                    type: 'bar',
+                    name: 'Ictal',
+                    marker: { color: 'red' },
+                    error_y: {
+                        type: 'data',
+                        array: [estadisticas.ictal.std[index]],
+                        visible: true
+                    },
+                    width: 0.5
+                };
 
-            const layout = {
-                title: {
-                    text: 'Comparación de Características: Interictal vs Ictal',
-                    font: { size: 18 }
-                },
-                xaxis: {
-                    title: 'Características',
-                    titlefont: { size: 14 },
-                    tickangle: -45
-                },
-                yaxis: {
-                    title: 'Valor',
-                    titlefont: { size: 14 }
-                },
-                barmode: 'group',
-                margin: { l: 60, r: 30, t: 50, b: 100 },
-                legend: { x: 0.7, y: 0.95 }
-            };
+                const layout = {
+                    title: {
+                        text: nombre + ': Comparación Interictal vs Ictal',
+                        font: { size: 16 }
+                    },
+                    xaxis: {
+                        title: 'Estado',
+                        titlefont: { size: 14 }
+                    },
+                    yaxis: {
+                        title: 'Valor',
+                        titlefont: { size: 14 }
+                    },
+                    barmode: 'group',
+                    margin: { l: 60, r: 30, t: 50, b: 50 },
+                    legend: { x: 0.7, y: 0.95 },
+                    showlegend: true
+                };
 
-            Plotly.newPlot(divId, [traceInterictal, traceIctal], layout, {responsive: true});
+                Plotly.newPlot(ids[index], [traceInterictal, traceIctal], layout, {responsive: true});
+            });
         }
 
         // Función para mostrar métricas de clasificación
