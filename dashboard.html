@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Análisis EEG Detección de Convulsiones</title>
+    <!-- Plotly.js desde CDN -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 40px;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #fafafa;
+            border-radius: 5px;
+        }
+        .plot-container {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .info-box {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #3498db;
+        }
+        .metric {
+            display: inline-block;
+            margin: 10px 20px;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .metric-value {
+            font-size: 1.5em;
+        }
+        .graph-info {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #ffffff;
+            border-left: 4px solid #3498db;
+            border-radius: 5px;
+        }
+        .graph-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        .description {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            line-height: 1.6;
+        }
+        .conclusion {
+            background-color: #e8f5e9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #4caf50;
+            line-height: 1.6;
+        }
+        .code-block {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .code-comment {
+            color: #75715e;
+        }
+        .code-keyword {
+            color: #f92672;
+        }
+        .code-string {
+            color: #e6db74;
+        }
+        .code-function {
+            color: #66d9ef;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Dashboard - Análisis de Señales EEG para Detección de Convulsiones</h1>
+        <div class="info-box">
+            <strong>Pontificia Universidad Javeriana - Bogotá</strong><br>
+            Procesamiento de Señales Biológicas<br>
+            Realizado por: Felipe Rangel
+        </div>
+
+        <!-- Sección 1: Visualización Temporal -->
+        <div class="section">
+            <h2>1. Visualización de Señales en el Tiempo</h2>
+            
+            <!-- Gráfica Temporal Interictal -->
+            <div class="graph-info">
+                <div class="graph-title">Señal EEG - Segmento Interictal</div>
+                
+                <div class="description">
+                    <strong>Descripción:</strong> Esta gráfica muestra la señal EEG en el dominio del tiempo para un segmento interictal (entre crisis epilépticas). La señal representa la actividad eléctrica del cerebro durante un período de actividad normal, sin convulsiones. Se observa la variación de amplitud de la señal a lo largo del tiempo, medida en microvoltios (μV).
+                </div>
+                
+                <div class="conclusion">
+                    <strong>Conclusión:</strong> La señal interictal muestra una actividad relativamente estable con variaciones de amplitud moderadas. No se observan patrones de alta amplitud o sincronización característicos de eventos convulsivos. Esta señal sirve como referencia para comparar con la actividad ictal.
+                </div>
+                
+                <div class="code-block">
+                    <pre># Código Python para visualización temporal interictal
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.io
+
+# Cargar datos del archivo .mat
+mat_data = scipy.io.loadmat('ArchivoSeizureDetect.mat')
+data_interictal = mat_data['Data_interictal']
+fs = float(mat_data['Fs'][0, 0])  # Frecuencia de muestreo
+
+# Seleccionar el primer segmento interictal
+segmento_interictal = data_interictal[0, :]
+
+# Crear vector de tiempo en segundos
+n_muestras = len(segmento_interictal)
+tiempo = np.arange(n_muestras) / fs
+
+# Crear la gráfica
+plt.figure(figsize=(12, 4))
+plt.plot(tiempo, segmento_interictal, 'b-', linewidth=0.5)
+plt.xlabel('Tiempo (s)', fontsize=12)
+plt.ylabel('Amplitud (μV)', fontsize=12)
+plt.title('Señal EEG - Segmento Interictal', fontsize=14, fontweight='bold')
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()</pre>
+                </div>
+            </div>
+            
+            <div class="plot-container">
+                <div id="plot-temporal-interictal"></div>
+            </div>
+            
+            <!-- Gráfica Temporal Ictal -->
+            <div class="graph-info">
+                <div class="graph-title">Señal EEG - Segmento Ictal</div>
+                
+                <div class="description">
+                    <strong>Descripción:</strong> Esta gráfica muestra la señal EEG en el dominio del tiempo para un segmento ictal (durante una crisis epiléptica). La señal captura la actividad eléctrica anormal del cerebro caracterizada por descargas sincronizadas de alta amplitud y frecuencia. Esta actividad es distintiva y permite identificar eventos convulsivos.
+                </div>
+                
+                <div class="conclusion">
+                    <strong>Conclusión:</strong> La señal ictal presenta características claramente diferentes a la interictal: mayor amplitud, patrones más sincronizados y actividad de alta frecuencia. Estas diferencias son fundamentales para el desarrollo de algoritmos de detección automática de convulsiones.
+                </div>
+                
+                <div class="code-block">
+                    <pre># Código Python para visualización temporal ictal
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.io
+
+# Cargar datos del archivo .mat
+mat_data = scipy.io.loadmat('ArchivoSeizureDetect.mat')
+data_ictal = mat_data['Data_ictal']
+fs = float(mat_data['Fs'][0, 0])  # Frecuencia de muestreo
+
+# Seleccionar el primer segmento ictal
+segmento_ictal = data_ictal[0, :]
+
+# Crear vector de tiempo en segundos
+n_muestras = len(segmento_ictal)
+tiempo = np.arange(n_muestras) / fs
+
+# Crear la gráfica
+plt.figure(figsize=(12, 4))
+plt.plot(tiempo, segmento_ictal, 'r-', linewidth=0.5)
+plt.xlabel('Tiempo (s)', fontsize=12)
+plt.ylabel('Amplitud (μV)', fontsize=12)
+plt.title('Señal EEG - Segmento Ictal', fontsize=14, fontweight='bold')
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()</pre>
+                </div>
+            </div>
+            
+            <div class="plot-container">
+                <div id="plot-temporal-ictal"></div>
+            </div>
+        </div>
+
+        <!-- Sección 2: Espectrogramas Tiempo-Frecuencia -->
+        <div class="section">
+            <h2>2. Espectrogramas Tiempo-Frecuencia</h2>
+            
+            <!-- Espectrograma Interictal -->
+            <div class="graph-info">
+                <div class="graph-title">Espectrograma - Segmento Interictal</div>
+                
+                <div class="description">
+                    <strong>Descripción:</strong> El espectrograma muestra la distribución de energía de la señal EEG en función del tiempo y la frecuencia para un segmento interictal. Utiliza la transformada de Fourier de tiempo corto (STFT) para analizar cómo varía el contenido espectral a lo largo del tiempo. Los colores representan la densidad espectral de potencia (PSD) en decibelios (dB), donde colores más intensos indican mayor energía en esa frecuencia y tiempo.
+                </div>
+                
+                <div class="conclusion">
+                    <strong>Conclusión:</strong> El espectrograma interictal muestra una distribución de energía relativamente uniforme a través de las diferentes bandas de frecuencia, sin concentraciones significativas de energía en bandas específicas. La actividad espectral es más dispersa y de menor intensidad comparada con la actividad ictal.
+                </div>
+                
+                <div class="code-block">
+                    <pre># Código Python para espectrograma interictal
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import signal
+import scipy.io
+
+# Cargar datos del archivo .mat
+mat_data = scipy.io.loadmat('ArchivoSeizureDetect.mat')
+data_interictal = mat_data['Data_interictal']
+fs = float(mat_data['Fs'][0, 0])  # Frecuencia de muestreo
+
+# Seleccionar el primer segmento interictal
+segmento_interictal = data_interictal[0, :]
+
+# Calcular espectrograma usando el método de Welch
+# nperseg: número de muestras por segmento
+# noverlap: número de muestras que se solapan entre segmentos
+nperseg = min(256, len(segmento_interictal) // 4)
+noverlap = nperseg // 2
+freqs, times, Sxx = signal.spectrogram(
+    segmento_interictal, 
+    fs, 
+    nperseg=nperseg, 
+    noverlap=noverlap, 
+    window='hann'  # Ventana de Hann para suavizar
+)
+
+# Convertir a decibelios para mejor visualización
+Sxx_db = 10 * np.log10(Sxx + 1e-10)  # Evitar log(0)
+
+# Crear el espectrograma
+plt.figure(figsize=(12, 6))
+plt.pcolormesh(times, freqs, Sxx_db, shading='gouraud', cmap='viridis')
+plt.colorbar(label='PSD (dB)')
+plt.xlabel('Tiempo (s)', fontsize=12)
+plt.ylabel('Frecuencia (Hz)', fontsize=12)
+plt.title('Espectrograma - Segmento Interictal', fontsize=14, fontweight='bold')
+plt.tight_layout()
+plt.show()</pre>
+                </div>
+            </div>
+            
+            <div class="plot-container">
+                <div id="plot-espectrograma-interictal"></div>
+            </div>
+            
+            <!-- Espectrograma Ictal -->
+            <div class="graph-info">
+                <div class="graph-title">Espectrograma - Segmento Ictal</div>
+                
+                <div class="description">
+                    <strong>Descripción:</strong> El espectrograma muestra la distribución de energía de la señal EEG durante un evento ictal (crisis epiléptica). Esta representación tiempo-frecuencia revela cómo la actividad espectral cambia durante la convulsión, mostrando concentraciones de energía en bandas de frecuencia específicas. Los patrones espectrales durante eventos ictales son característicos y diferentes a los observados en períodos interictales.
+                </div>
+                
+                <div class="conclusion">
+                    <strong>Conclusión:</strong> El espectrograma ictal muestra concentraciones significativas de energía, particularmente en las bandas de frecuencia más altas (beta y gamma). Se observan patrones más estructurados y sincronizados, con mayor intensidad espectral comparada con la actividad interictal. Estas características espectrales son clave para la detección automática de convulsiones.
+                </div>
+                
+                <div class="code-block">
+                    <pre># Código Python para espectrograma ictal
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import signal
+import scipy.io
+
+# Cargar datos del archivo .mat
+mat_data = scipy.io.loadmat('ArchivoSeizureDetect.mat')
+data_ictal = mat_data['Data_ictal']
+fs = float(mat_data['Fs'][0, 0])  # Frecuencia de muestreo
+
+# Seleccionar el primer segmento ictal
+segmento_ictal = data_ictal[0, :]
+
+# Calcular espectrograma usando el método de Welch
+# nperseg: número de muestras por segmento
+# noverlap: número de muestras que se solapan entre segmentos
+nperseg = min(256, len(segmento_ictal) // 4)
+noverlap = nperseg // 2
+freqs, times, Sxx = signal.spectrogram(
+    segmento_ictal, 
+    fs, 
+    nperseg=nperseg, 
+    noverlap=noverlap, 
+    window='hann'  # Ventana de Hann para suavizar
+)
+
+# Convertir a decibelios para mejor visualización
+Sxx_db = 10 * np.log10(Sxx + 1e-10)  # Evitar log(0)
+
+# Crear el espectrograma
+plt.figure(figsize=(12, 6))
+plt.pcolormesh(times, freqs, Sxx_db, shading='gouraud', cmap='viridis')
+plt.colorbar(label='PSD (dB)')
+plt.xlabel('Tiempo (s)', fontsize=12)
+plt.ylabel('Frecuencia (Hz)', fontsize=12)
+plt.title('Espectrograma - Segmento Ictal', fontsize=14, fontweight='bold')
+plt.tight_layout()
+plt.show()</pre>
+                </div>
+            </div>
+            
+            <div class="plot-container">
+                <div id="plot-espectrograma-ictal"></div>
+            </div>
+        </div>
+
+        <!-- Sección 3: Matriz de Características -->
+        <div class="section">
+            <h2>3. Matriz de Características</h2>
+            
+            <!-- Gráfica de Características -->
+            <div class="graph-info">
+                <div class="graph-title">Comparación de Características: Interictal vs Ictal</div>
+                
+                <div class="description">
+                    <strong>Descripción:</strong> Esta gráfica compara las 7 características extraídas de todos los eventos EEG entre las clases interictal e ictal. Las características incluyen: media (mean), varianza (variance), y densidad espectral de potencia (PSD) en las bandas delta (0.5-4 Hz), theta (4-8 Hz), alpha (8-13 Hz), beta (13-30 Hz) y gamma (30-100 Hz). Las barras muestran los valores promedio y las líneas de error representan la desviación estándar, permitiendo identificar qué características son más discriminativas entre ambas clases.
+                </div>
+                
+                <div class="conclusion">
+                    <strong>Conclusión:</strong> Se observan diferencias significativas en varias características entre eventos interictal e ictal. Las características espectrales (PSD en diferentes bandas) muestran variaciones importantes, especialmente en las bandas de mayor frecuencia (beta y gamma), donde los eventos ictales presentan mayor energía. Estas diferencias justifican el uso de estas características para la clasificación automática de convulsiones.
+                </div>
+                
+                <div class="code-block">
+                    <pre># Código Python para matriz de características y comparación
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import signal
+import scipy.io
+
+# Definir bandas de frecuencia EEG estándar
+BANDAS_FRECUENCIA = {
+    'delta': (0.5, 4),
+    'theta': (4, 8),
+    'alpha': (8, 13),
+    'beta': (13, 30),
+    'gamma': (30, 100)
+}
+
+def calcular_psd_banda(senal, fs, banda_min, banda_max):
+    """
+    Calcula la densidad espectral de potencia (PSD) promedio en una banda
+    """
+    # Calcular PSD usando el método de Welch
+    freqs, psd = signal.welch(senal, fs, nperseg=min(256, len(senal)), 
+                              noverlap=None, nfft=None)
+    
+    # Encontrar índices de la banda de frecuencia
+    idx_banda = np.where((freqs >= banda_min) & (freqs <= banda_max))[0]
+    
+    # Calcular PSD promedio en la banda
+    if len(idx_banda) > 0:
+        psd_banda = np.mean(psd[idx_banda])
+    else:
+        psd_banda = 0.0
+    
+    return psd_banda
+
+def extraer_caracteristicas(senal):
+    """
+    Extrae las 7 características de un segmento de señal
+    """
+    fs = 500.0  # Frecuencia de muestreo
+    
+    # 1. Media
+    mean_val = np.mean(senal)
+    
+    # 2. Varianza
+    variance_val = np.var(senal)
+    
+    # 3-7. PSD en cada banda de frecuencia
+    psd_delta = calcular_psd_banda(senal, fs, BANDAS_FRECUENCIA['delta'][0], 
+                                    BANDAS_FRECUENCIA['delta'][1])
+    psd_theta = calcular_psd_banda(senal, fs, BANDAS_FRECUENCIA['theta'][0], 
+                                    BANDAS_FRECUENCIA['theta'][1])
+    psd_alpha = calcular_psd_banda(senal, fs, BANDAS_FRECUENCIA['alpha'][0], 
+                                    BANDAS_FRECUENCIA['alpha'][1])
+    psd_beta = calcular_psd_banda(senal, fs, BANDAS_FRECUENCIA['beta'][0], 
+                                   BANDAS_FRECUENCIA['beta'][1])
+    psd_gamma = calcular_psd_banda(senal, fs, BANDAS_FRECUENCIA['gamma'][0], 
+                                   BANDAS_FRECUENCIA['gamma'][1])
+    
+    return np.array([mean_val, variance_val, psd_delta, psd_theta, 
+                     psd_alpha, psd_beta, psd_gamma])
+
+# Cargar datos
+mat_data = scipy.io.loadmat('ArchivoSeizureDetect.mat')
+data_ictal = mat_data['Data_ictal']
+data_interictal = mat_data['Data_interictal']
+
+# Extraer características de todos los eventos
+caracteristicas_interictal = []
+caracteristicas_ictal = []
+
+for i in range(data_interictal.shape[0]):
+    caracteristicas_interictal.append(extraer_caracteristicas(data_interictal[i, :]))
+
+for i in range(data_ictal.shape[0]):
+    caracteristicas_ictal.append(extraer_caracteristicas(data_ictal[i, :]))
+
+caracteristicas_interictal = np.array(caracteristicas_interictal)
+caracteristicas_ictal = np.array(caracteristicas_ictal)
+
+# Calcular promedios y desviaciones estándar
+mean_interictal = caracteristicas_interictal.mean(axis=0)
+std_interictal = caracteristicas_interictal.std(axis=0)
+mean_ictal = caracteristicas_ictal.mean(axis=0)
+std_ictal = caracteristicas_ictal.std(axis=0)
+
+# Nombres de las características
+nombres = ['Mean', 'Variance', 'PSD Delta', 'PSD Theta', 
+           'PSD Alpha', 'PSD Beta', 'PSD Gamma']
+
+# Crear gráfica de barras comparativa
+x = np.arange(len(nombres))
+width = 0.35
+
+fig, ax = plt.subplots(figsize=(12, 6))
+bars1 = ax.bar(x - width/2, mean_interictal, width, yerr=std_interictal, 
+               label='Interictal', color='blue', alpha=0.7, capsize=5)
+bars2 = ax.bar(x + width/2, mean_ictal, width, yerr=std_ictal, 
+               label='Ictal', color='red', alpha=0.7, capsize=5)
+
+ax.set_xlabel('Características', fontsize=12)
+ax.set_ylabel('Valor', fontsize=12)
+ax.set_title('Comparación de Características: Interictal vs Ictal', 
+             fontsize=14, fontweight='bold')
+ax.set_xticks(x)
+ax.set_xticklabels(nombres, rotation=45, ha='right')
+ax.legend()
+ax.grid(True, alpha=0.3, axis='y')
+plt.tight_layout()
+plt.show()</pre>
+                </div>
+            </div>
+            
+            <div class="plot-container">
+                <div id="plot-caracteristicas"></div>
+            </div>
+        </div>
+
+        <!-- Sección 4: Resultados de Clasificación -->
+        <div class="section">
+            <h2>4. Resultados de Clasificación con SVM</h2>
+            
+            <div class="info-box">
+                <div class="metric">
+                    <div>Precisión (Accuracy)</div>
+                    <div class="metric-value" id="accuracy-value">-</div>
+                </div>
+                <div class="metric">
+                    <div>Datos de Entrenamiento</div>
+                    <div class="metric-value" id="train-size">-</div>
+                </div>
+                <div class="metric">
+                    <div>Datos de Prueba</div>
+                    <div class="metric-value" id="test-size">-</div>
+                </div>
+            </div>
+            
+            <!-- Matriz de Confusión -->
+            <div class="graph-info">
+                <div class="graph-title">Matriz de Confusión</div>
+                
+                <div class="description">
+                    <strong>Descripción:</strong> La matriz de confusión muestra el rendimiento del clasificador SVM comparando las predicciones del modelo con los valores reales de las etiquetas. La matriz es una tabla de 2x2 donde las filas representan las clases reales (Interictal e Ictal) y las columnas representan las clases predichas. Los valores en la diagonal principal (verdaderos positivos y verdaderos negativos) indican clasificaciones correctas, mientras que los valores fuera de la diagonal (falsos positivos y falsos negativos) indican errores de clasificación.
+                </div>
+                
+                <div class="conclusion">
+                    <strong>Conclusión:</strong> El clasificador SVM muestra un buen rendimiento con una precisión del 88.57%. La matriz de confusión revela que el modelo tiene una alta capacidad para identificar correctamente eventos interictales (21/21 correctos), mientras que tiene algunas dificultades con eventos ictales (10/14 correctos, 4 falsos negativos). Esto sugiere que el modelo es más conservador en la detección de convulsiones, lo cual puede ser preferible en aplicaciones clínicas para evitar falsas alarmas.
+                </div>
+                
+                <div class="code-block">
+                    <pre># Código Python para matriz de confusión
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Cargar datos procesados
+# (asumiendo que ya se tienen las características y etiquetas)
+# matriz_caracteristicas: array (n_eventos, 7)
+# etiquetas: array (n_eventos,) con 0=interictal, 1=ictal
+
+# Dividir datos en training y testing (80/20)
+X_train, X_test, y_train, y_test = train_test_split(
+    matriz_caracteristicas, 
+    etiquetas, 
+    test_size=0.2, 
+    random_state=42, 
+    stratify=etiquetas  # Mantener proporción de clases
+)
+
+# Normalizar características
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Entrenar clasificador SVM
+clf = SVC(kernel='rbf', C=1.0, gamma='scale', random_state=42)
+clf.fit(X_train_scaled, y_train)
+
+# Realizar predicciones
+y_pred = clf.predict(X_test_scaled)
+
+# Calcular matriz de confusión
+cm = confusion_matrix(y_test, y_pred)
+
+# Crear visualización de la matriz de confusión
+plt.figure(figsize=(8, 6))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
+            xticklabels=['Interictal', 'Ictal'],
+            yticklabels=['Interictal', 'Ictal'],
+            cbar_kws={'label': 'Cantidad'})
+plt.xlabel('Predicción', fontsize=12)
+plt.ylabel('Valor Real', fontsize=12)
+plt.title('Matriz de Confusión', fontsize=14, fontweight='bold')
+plt.tight_layout()
+plt.show()</pre>
+                </div>
+            </div>
+            
+            <div class="plot-container">
+                <div id="plot-confusion-matrix"></div>
+            </div>
+            
+            <!-- Métricas de Clasificación -->
+            <div class="graph-info">
+                <div class="graph-title">Métricas de Clasificación por Clase</div>
+                
+                <div class="description">
+                    <strong>Descripción:</strong> Esta gráfica muestra las métricas de rendimiento del clasificador SVM para cada clase (Interictal e Ictal). Las métricas incluyen: Precision (precisión), que mide la proporción de predicciones positivas que fueron correctas; Recall (sensibilidad), que mide la proporción de casos positivos reales que fueron identificados correctamente; y F1-Score, que es la media armónica de precision y recall, proporcionando una medida balanceada del rendimiento. Estas métricas permiten evaluar el rendimiento del modelo de manera más detallada que solo la precisión global.
+                </div>
+                
+                <div class="conclusion">
+                    <strong>Conclusión:</strong> El análisis de métricas muestra que el clasificador tiene un excelente rendimiento para la clase Interictal (precision=0.84, recall=1.00, F1=0.91), indicando que casi todos los eventos interictales son identificados correctamente. Para la clase Ictal, el modelo tiene precision perfecta (1.00) pero recall moderado (0.71), lo que significa que cuando predice un evento ictal, siempre es correcto, pero no detecta todos los eventos ictales. El F1-Score de 0.83 para Ictal indica un buen balance general. Estas métricas confirman que el modelo es adecuado para aplicaciones de detección de convulsiones.
+                </div>
+                
+                <div class="code-block">
+                    <pre># Código Python para métricas de clasificación
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import classification_report, precision_score, recall_score, f1_score
+import matplotlib.pyplot as plt
+
+# Cargar datos procesados
+# (asumiendo que ya se tienen las características y etiquetas)
+# matriz_caracteristicas: array (n_eventos, 7)
+# etiquetas: array (n_eventos,) con 0=interictal, 1=ictal
+
+# Dividir datos en training y testing (80/20)
+X_train, X_test, y_train, y_test = train_test_split(
+    matriz_caracteristicas, 
+    etiquetas, 
+    test_size=0.2, 
+    random_state=42, 
+    stratify=etiquetas
+)
+
+# Normalizar características
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Entrenar clasificador SVM
+clf = SVC(kernel='rbf', C=1.0, gamma='scale', random_state=42)
+clf.fit(X_train_scaled, y_train)
+
+# Realizar predicciones
+y_pred = clf.predict(X_test_scaled)
+
+# Calcular métricas por clase
+precision_interictal = precision_score(y_test, y_pred, pos_label=0)
+recall_interictal = recall_score(y_test, y_pred, pos_label=0)
+f1_interictal = f1_score(y_test, y_pred, pos_label=0)
+
+precision_ictal = precision_score(y_test, y_pred, pos_label=1)
+recall_ictal = recall_score(y_test, y_pred, pos_label=1)
+f1_ictal = f1_score(y_test, y_pred, pos_label=1)
+
+# Preparar datos para gráfica
+clases = ['Interictal', 'Ictal']
+precision = [precision_interictal, precision_ictal]
+recall = [recall_interictal, recall_ictal]
+f1 = [f1_interictal, f1_ictal]
+
+# Crear gráfica de barras
+x = np.arange(len(clases))
+width = 0.25
+
+fig, ax = plt.subplots(figsize=(10, 6))
+bars1 = ax.bar(x - width, precision, width, label='Precision', color='green', alpha=0.7)
+bars2 = ax.bar(x, recall, width, label='Recall', color='orange', alpha=0.7)
+bars3 = ax.bar(x + width, f1, width, label='F1-Score', color='purple', alpha=0.7)
+
+ax.set_xlabel('Clase', fontsize=12)
+ax.set_ylabel('Valor', fontsize=12)
+ax.set_title('Métricas de Clasificación por Clase', fontsize=14, fontweight='bold')
+ax.set_xticks(x)
+ax.set_xticklabels(clases)
+ax.set_ylim([0, 1.1])
+ax.legend()
+ax.grid(True, alpha=0.3, axis='y')
+plt.tight_layout()
+plt.show()
+
+# Imprimir reporte completo
+print(classification_report(y_test, y_pred, target_names=['Interictal', 'Ictal']))</pre>
+                </div>
+            </div>
+            
+            <div class="plot-container">
+                <div id="plot-metricas"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cargar datos del archivo JSON
+        let datosDashboard = null;
+
+        // Función para cargar los datos
+        async function cargarDatos() {
+            try {
+                const response = await fetch('datos_dashboard.json');
+                datosDashboard = await response.json();
+                inicializarDashboard();
+            } catch (error) {
+                console.error('Error al cargar datos:', error);
+                alert('Error al cargar los datos. Asegúrese de que el archivo datos_dashboard.json esté en el mismo directorio.');
+            }
+        }
+
+        // Función principal que inicializa todos los gráficos
+        function inicializarDashboard() {
+            // 1. Gráficas temporales
+            crearGraficaTemporal('plot-temporal-interictal', 
+                                datosDashboard.visualizacion.tiempo_interictal,
+                                datosDashboard.visualizacion.senal_interictal,
+                                'Señal EEG - Segmento Interictal',
+                                'blue');
+            
+            crearGraficaTemporal('plot-temporal-ictal',
+                                datosDashboard.visualizacion.tiempo_ictal,
+                                datosDashboard.visualizacion.senal_ictal,
+                                'Señal EEG - Segmento Ictal',
+                                'red');
+
+            // 2. Espectrogramas
+            crearEspectrograma('plot-espectrograma-interictal',
+                              datosDashboard.visualizacion.times_interictal,
+                              datosDashboard.visualizacion.freqs_interictal,
+                              datosDashboard.visualizacion.Sxx_interictal,
+                              'Espectrograma - Segmento Interictal');
+
+            crearEspectrograma('plot-espectrograma-ictal',
+                              datosDashboard.visualizacion.times_ictal,
+                              datosDashboard.visualizacion.freqs_ictal,
+                              datosDashboard.visualizacion.Sxx_ictal,
+                              'Espectrograma - Segmento Ictal');
+
+            // 3. Matriz de características
+            crearGraficaCaracteristicas('plot-caracteristicas',
+                                       datosDashboard.caracteristicas.nombres,
+                                       datosDashboard.caracteristicas.estadisticas);
+
+            // 4. Resultados de clasificación
+            mostrarMetricasClasificacion(datosDashboard.clasificacion);
+            crearMatrizConfusion('plot-confusion-matrix',
+                                datosDashboard.clasificacion.confusion_matrix);
+            crearGraficaMetricas('plot-metricas',
+                                datosDashboard.clasificacion.classification_report);
+        }
+
+        // Función para crear gráfica temporal
+        function crearGraficaTemporal(divId, tiempo, senal, titulo, color) {
+            const trace = {
+                x: tiempo,
+                y: senal,
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: color, width: 1 },
+                name: 'Señal EEG'
+            };
+
+            const layout = {
+                title: {
+                    text: titulo,
+                    font: { size: 18 }
+                },
+                xaxis: {
+                    title: 'Tiempo (s)',
+                    titlefont: { size: 14 }
+                },
+                yaxis: {
+                    title: 'Amplitud (μV)',
+                    titlefont: { size: 14 }
+                },
+                hovermode: 'closest',
+                margin: { l: 60, r: 30, t: 50, b: 50 }
+            };
+
+            Plotly.newPlot(divId, [trace], layout, {responsive: true});
+        }
+
+        // Función para crear espectrograma
+        function crearEspectrograma(divId, times, freqs, Sxx, titulo) {
+            // Convertir arrays anidados a arrays 2D si es necesario
+            let SxxArray = Sxx;
+            if (Array.isArray(Sxx[0]) && !Array.isArray(Sxx[0][0])) {
+                // Si Sxx es una lista de listas, ya está bien
+                SxxArray = Sxx;
+            }
+
+            const trace = {
+                x: times,
+                y: freqs,
+                z: SxxArray,
+                type: 'heatmap',
+                colorscale: 'Viridis',
+                colorbar: {
+                    title: 'PSD (dB)',
+                    titleside: 'right'
+                }
+            };
+
+            const layout = {
+                title: {
+                    text: titulo,
+                    font: { size: 18 }
+                },
+                xaxis: {
+                    title: 'Tiempo (s)',
+                    titlefont: { size: 14 }
+                },
+                yaxis: {
+                    title: 'Frecuencia (Hz)',
+                    titlefont: { size: 14 }
+                },
+                margin: { l: 60, r: 30, t: 50, b: 50 }
+            };
+
+            Plotly.newPlot(divId, [trace], layout, {responsive: true});
+        }
+
+        // Función para crear gráfica de características
+        function crearGraficaCaracteristicas(divId, nombres, estadisticas) {
+            const traceInterictal = {
+                x: nombres,
+                y: estadisticas.interictal.mean,
+                type: 'bar',
+                name: 'Interictal',
+                marker: { color: 'blue' },
+                error_y: {
+                    type: 'data',
+                    array: estadisticas.interictal.std,
+                    visible: true
+                }
+            };
+
+            const traceIctal = {
+                x: nombres,
+                y: estadisticas.ictal.mean,
+                type: 'bar',
+                name: 'Ictal',
+                marker: { color: 'red' },
+                error_y: {
+                    type: 'data',
+                    array: estadisticas.ictal.std,
+                    visible: true
+                }
+            };
+
+            const layout = {
+                title: {
+                    text: 'Comparación de Características: Interictal vs Ictal',
+                    font: { size: 18 }
+                },
+                xaxis: {
+                    title: 'Características',
+                    titlefont: { size: 14 },
+                    tickangle: -45
+                },
+                yaxis: {
+                    title: 'Valor',
+                    titlefont: { size: 14 }
+                },
+                barmode: 'group',
+                margin: { l: 60, r: 30, t: 50, b: 100 },
+                legend: { x: 0.7, y: 0.95 }
+            };
+
+            Plotly.newPlot(divId, [traceInterictal, traceIctal], layout, {responsive: true});
+        }
+
+        // Función para mostrar métricas de clasificación
+        function mostrarMetricasClasificacion(resultados) {
+            document.getElementById('accuracy-value').textContent = 
+                (resultados.accuracy * 100).toFixed(2) + '%';
+            document.getElementById('train-size').textContent = resultados.n_train;
+            document.getElementById('test-size').textContent = resultados.n_test;
+        }
+
+        // Función para crear matriz de confusión
+        function crearMatrizConfusion(divId, confusionMatrix) {
+            const z = confusionMatrix;
+            const x = ['Interictal', 'Ictal'];
+            const y = ['Interictal', 'Ictal'];
+
+            const trace = {
+                x: x,
+                y: y,
+                z: z,
+                type: 'heatmap',
+                colorscale: 'Blues',
+                text: z.map(row => row.map(val => val.toString())),
+                texttemplate: '%{text}',
+                textfont: { size: 16, color: 'white' },
+                showscale: true,
+                colorbar: {
+                    title: 'Cantidad',
+                    titleside: 'right'
+                }
+            };
+
+            const layout = {
+                title: {
+                    text: 'Matriz de Confusión',
+                    font: { size: 18 }
+                },
+                xaxis: {
+                    title: 'Predicción',
+                    titlefont: { size: 14 }
+                },
+                yaxis: {
+                    title: 'Valor Real',
+                    titlefont: { size: 14 }
+                },
+                margin: { l: 80, r: 30, t: 50, b: 50 }
+            };
+
+            Plotly.newPlot(divId, [trace], layout, {responsive: true});
+        }
+
+        // Función para crear gráfica de métricas
+        function crearGraficaMetricas(divId, report) {
+            const clases = ['Interictal', 'Ictal'];
+            const precision = [
+                report['Interictal'].precision,
+                report['Ictal'].precision
+            ];
+            const recall = [
+                report['Interictal'].recall,
+                report['Ictal'].recall
+            ];
+            const f1 = [
+                report['Interictal']['f1-score'],
+                report['Ictal']['f1-score']
+            ];
+
+            const trace1 = {
+                x: clases,
+                y: precision,
+                type: 'bar',
+                name: 'Precision',
+                marker: { color: 'green' }
+            };
+
+            const trace2 = {
+                x: clases,
+                y: recall,
+                type: 'bar',
+                name: 'Recall',
+                marker: { color: 'orange' }
+            };
+
+            const trace3 = {
+                x: clases,
+                y: f1,
+                type: 'bar',
+                name: 'F1-Score',
+                marker: { color: 'purple' }
+            };
+
+            const layout = {
+                title: {
+                    text: 'Métricas de Clasificación por Clase',
+                    font: { size: 18 }
+                },
+                xaxis: {
+                    title: 'Clase',
+                    titlefont: { size: 14 }
+                },
+                yaxis: {
+                    title: 'Valor',
+                    titlefont: { size: 14 },
+                    range: [0, 1.1]
+                },
+                barmode: 'group',
+                margin: { l: 60, r: 30, t: 50, b: 50 },
+                legend: { x: 0.7, y: 0.95 }
+            };
+
+            Plotly.newPlot(divId, [trace1, trace2, trace3], layout, {responsive: true});
+        }
+
+        // Inicializar dashboard al cargar la página
+        cargarDatos();
+    </script>
+</body>
+</html>
+

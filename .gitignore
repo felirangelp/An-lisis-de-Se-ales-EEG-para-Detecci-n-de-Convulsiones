@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Ambiente virtual
+venv/
+env/
+ENV/
+.venv
+
+# Archivos de datos grandes (opcional - puedes comentar si quieres incluirlos)
+*.mat
+*.npz
+
+# Archivos generados
+*.png
+*.jpg
+*.jpeg
+
+# Archivos temporales
+*.tmp
+*.log
+~$*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Archivos de Word temporales
+~$*.docx
+
